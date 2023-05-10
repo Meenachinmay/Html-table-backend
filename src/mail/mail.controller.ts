@@ -1,26 +1,15 @@
-import {
-  Body,
-  Controller,
-  Get,
-  HttpStatus,
-  Post,
-  Query,
-  Res,
-} from '@nestjs/common';
-import { PrismaService } from 'src/prisma.service';
-import { SendgridService } from 'src/sendgrid/sendgrid.service';
-import { UserService } from 'src/user/user.service';
-import { JwtService } from '@nestjs/jwt';
+import { Body, Controller, HttpStatus, Post, Res } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { EMailService } from './mail.service';
+import { JwtService } from '@nestjs/jwt';
+import { SendgridService } from 'src/sendgrid/sendgrid.service';
+import { UserDto } from 'src/user/dto/user.dto';
 import { EmailVerificationDTO } from './email.dto';
+import { EMailService } from './mail.service';
 
 @Controller('mail')
 export class MailController {
   constructor(
     private readonly sendgridService: SendgridService,
-    private readonly userService: UserService,
-    private readonly prismaService: PrismaService,
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
     private readonly emailService: EMailService,
@@ -28,10 +17,12 @@ export class MailController {
 
   // Here we use query parameter to get the email that we want to send
   @Post('send-email')
-  async sendEmail(@Res() res, @Query('email') email: string) {
+  async sendEmail(@Res() res, @Body() body: UserDto) {
+    // getting values out of body
+    const { email, name, password } = body;
     // generate a JWT token
     const token = await this.jwtService.signAsync(
-      { email },
+      { email, name, password },
       {
         secret: this.configService.get<string>('JWT_EMAIL_VERIFICATION'),
         expiresIn: '10h',

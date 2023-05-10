@@ -9,3 +9,8 @@ export interface ErrorType {
   message: string;
   type: string;
 }
+
+export interface UserSignUpType {
+  message: string;
+  status: string;
+}
